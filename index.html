@@ -1215,17 +1215,18 @@ function printRMA() {
         const doc = new jsPDF('p', 'mm', 'a4');
         
         // Data from form
-        const rmaData = {
-            code: document.getElementById('generatedCode').innerText,
-            date: document.getElementById('rmaDate').value || new Date().toLocaleDateString(),
-            location: document.getElementById('rmaLocation').value,
-            customer: document.getElementById('customerName').value,
-            contact: document.getElementById('contact').value,
-            address: document.getElementById('address').value,
-            product: document.getElementById('productName').value,
-            serial: document.getElementById('serialNumber').value,
-            issue: document.getElementById('issue').value
-        };
+// Find this section inside your printRMA() function and update it:
+const rmaData = {
+    code: document.getElementById('generatedCode')?.innerText || "N/A",
+    date: document.getElementById('rmaDate')?.value || new Date().toLocaleDateString(),
+    location: document.getElementById('location')?.value || "N/A", 
+    customer: document.getElementById('customerName')?.value || "N/A",
+    contact: document.getElementById('contact')?.value || "N/A",
+    address: document.getElementById('address')?.value || "N/A",
+    product: document.getElementById('productName')?.value || "N/A", 
+    serial: document.getElementById('serialNumber')?.value || "N/A", 
+    issue: document.getElementById('issue')?.value || "N/A"
+};
 
         const drawSection = (yOffset, label) => {
             // --- Header & Logo Area ---
