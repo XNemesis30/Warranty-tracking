@@ -1146,7 +1146,9 @@ function updateLocationNames() {
   LOC2 = localStorage.getItem('ez_loc2') || 'Location 2';
   const sel = document.getElementById('rmaLocation');
   sel.options[0].text = '📍 ' + LOC1;
+  sel.options[0].value = LOC1;
   sel.options[1].text = '📍 ' + LOC2;
+  sel.options[1].value = LOC2;
 }
 
 async function checkConnection() {
