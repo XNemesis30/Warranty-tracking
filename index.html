@@ -1161,10 +1161,11 @@ select option { background: var(--surface2); }
   <div class="config-box">
     <h3>🌐 Customer Form Setup</h3>
     <div class="steps">
-      <div class="step"><div class="step-num">1</div><p>Generate a QR code pointing to: <code id="customerFormUrl">Copy URL first</code></p></div>
-      <div class="step"><div class="step-num">2</div><p>Print the QR code and attach it to your RMA forms</p></div>
-      <div class="step"><div class="step-num">3</div><p>When customers scan the QR code, they see only the form – no data</p></div>
-      <div class="step"><div class="step-num">4</div><p>Their submissions automatically appear in your Google Sheet</p></div>
+      <div class="step"><div class="step-num">1</div><p>Save your <strong>Google Apps Script URL</strong> in Step 2 above first</p></div>
+      <div class="step"><div class="step-num">2</div><p>Click <strong>📋 Copy Customer Form URL</strong> below – it includes your API key</p></div>
+      <div class="step"><div class="step-num">3</div><p>Generate a QR code from the copied URL (use <a href="https://qr-code-generator.com" target="_blank" style="color:var(--accent2)">qr-code-generator.com</a>)</p></div>
+      <div class="step"><div class="step-num">4</div><p>Print the QR code and give it to customers – works on any browser/device</p></div>
+      <div class="step"><div class="step-num">5</div><p>Customer scans → fills form → data auto-saves to your Google Sheet</p></div>
     </div>
     <button class="btn btn-teal" onclick="copyCustomerFormUrl()">📋 Copy Customer Form URL</button>
   </div>
@@ -1310,8 +1311,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function initCustomerMode() {
   isCustomerMode = true;
   
-  // Load configuration from localStorage
-  SCRIPT_URL = localStorage.getItem('ez_script_url') || '';
+  // Load configuration from URL parameters (priority) or localStorage
+  const params = new URLSearchParams(window.location.search);
+  SCRIPT_URL = params.get('script') || localStorage.getItem('ez_script_url') || '';
   LOC1 = localStorage.getItem('ez_loc1') || 'Location 1';
   LOC2 = localStorage.getItem('ez_loc2') || 'Location 2';
   
@@ -1699,12 +1701,20 @@ function updateLocationNames() {
 }
 
 function updateCustomerFormUrl() {
-  const url = `${window.location.origin}${window.location.pathname}?customer=true`;
+  const scriptUrl = localStorage.getItem('ez_script_url') || '';
+  const encodedScript = encodeURIComponent(scriptUrl);
+  const url = `${window.location.origin}${window.location.pathname}?customer=true&script=${encodedScript}`;
   document.getElementById('customerFormUrl').textContent = url;
 }
 
 function copyCustomerFormUrl() {
-  const url = `${window.location.origin}${window.location.pathname}?customer=true`;
+  const scriptUrl = localStorage.getItem('ez_script_url') || '';
+  if (!scriptUrl) {
+    showToast('⚠️ Please save your Google Apps Script URL first!', 'error');
+    return;
+  }
+  const encodedScript = encodeURIComponent(scriptUrl);
+  const url = `${window.location.origin}${window.location.pathname}?customer=true&script=${encodedScript}`;
   navigator.clipboard.writeText(url).then(() => {
     showToast('Customer form URL copied to clipboard!', 'success');
   }).catch(err => {
