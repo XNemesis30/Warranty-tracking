@@ -1212,59 +1212,66 @@ function clearForm() {
 function printRMA() {
     try {
         const { jsPDF } = window.jspdf;
+        // Create A4 PDF
         const doc = new jsPDF('p', 'mm', 'a4');
         
-        // --- FIXED DATA MAPPING ---
+        // --- 1. GET DATA FROM YOUR FORM ---
         const rmaData = {
             code: document.getElementById('generatedCode')?.innerText || "---",
             date: document.getElementById('rmaDate')?.value || new Date().toLocaleDateString(),
-            // FIXED: Grabs the ACTUAL text (e.g. "Dhanmondi") from the dropdown 
+            // FIXED: This specifically gets the name of the branch you picked
             location: document.getElementById('rmaLocation')?.options[document.getElementById('rmaLocation').selectedIndex]?.text || "N/A",
             customer: document.getElementById('customerName')?.value || "N/A",
             contact: document.getElementById('contact')?.value || "N/A",
             address: document.getElementById('address')?.value || "N/A",
-            product: document.getElementById('productName')?.value || "N/A", 
-            serial: document.getElementById('serialNumber')?.value || "N/A", 
+            product: document.getElementById('productName')?.value || "N/A",
+            serial: document.getElementById('serialNumber')?.value || "N/A",
             issue: document.getElementById('issue')?.value || "N/A"
         };
 
         const drawSection = (yOffset, label) => {
-            // Header Logic
-            doc.setFont("Syne", "bold");
-            doc.setFontSize(20);
-            doc.setTextColor(245, 200, 66); 
-            doc.text("EZ GADGETS", 50, yOffset + 12);
+            // --- HEADER (Switched to Helvetica to stop "Alien Text") ---
+            doc.setFont("helvetica", "bold"); 
+            doc.setFontSize(22);
+            doc.setTextColor(245, 200, 66); // Your Brand Gold
+            doc.text("EZ GADGETS", 15, yOffset + 12);
+            
             doc.setFontSize(10);
             doc.setTextColor(100);
-            doc.text("RMA WARRANTY TRACKER", 50, yOffset + 18);
+            doc.text("RMA WARRANTY TRACKER", 15, yOffset + 18);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0);
             doc.text(label, 195, yOffset + 15, { align: "right" });
 
+            // --- BORDERS ---
             doc.setDrawColor(200);
             doc.line(15, yOffset + 25, 195, yOffset + 25); 
 
-            // Left Column: Customer
+            // --- CUSTOMER INFO ---
             doc.setFontSize(9);
-            doc.setTextColor(0);
-            doc.setFont("helvetica", "bold"); doc.text("CUSTOMER DETAILS", 15, yOffset + 32);
+            doc.setFont("helvetica", "bold");
+            doc.text("CUSTOMER DETAILS", 15, yOffset + 32);
             doc.setFont("helvetica", "normal");
             doc.text(`Name: ${rmaData.customer}`, 15, yOffset + 40);
             doc.text(`Contact: ${rmaData.contact}`, 15, yOffset + 47);
             doc.text(`Address: ${rmaData.address}`, 15, yOffset + 54);
 
-            // Right Column: Product (BOLDED labels for visibility)
-            doc.setFont("helvetica", "bold"); doc.text("PRODUCT & RMA DETAILS", 105, yOffset + 32);
+            // --- PRODUCT INFO (BOLD LABELS FOR VISIBILITY) ---
+            doc.setFont("helvetica", "bold");
+            doc.text("PRODUCT & RMA DETAILS", 105, yOffset + 32);
             doc.setFont("helvetica", "normal");
             doc.text(`RMA Code: ${rmaData.code}`, 105, yOffset + 40);
             doc.text(`Date: ${rmaData.date}`, 105, yOffset + 47);
             doc.text(`Location: ${rmaData.location}`, 105, yOffset + 54);
             
-            // Highlighted Product Info
-            doc.setFont("helvetica", "bold"); 
+            // HIGHLIGHTED PRODUCT DETAILS
+            doc.setFont("helvetica", "bold");
             doc.text(`PRODUCT: ${rmaData.product}`, 105, yOffset + 62);
             doc.text(`S/N: ${rmaData.serial}`, 105, yOffset + 69);
             doc.setFont("helvetica", "normal");
 
-            // Issue Box
+            // --- ISSUE BOX ---
             doc.setFillColor(245, 245, 245);
             doc.rect(15, yOffset + 78, 180, 25, 'F');
             doc.setFont("helvetica", "bold");
@@ -1272,24 +1279,26 @@ function printRMA() {
             doc.setFont("helvetica", "normal");
             doc.text(doc.splitTextToSize(rmaData.issue, 170), 20, yOffset + 92);
 
-            // Signature Lines
+            // --- SIGNATURES ---
             doc.line(15, yOffset + 125, 70, yOffset + 125);
             doc.text("Customer Signature", 15, yOffset + 130);
             doc.line(140, yOffset + 125, 195, yOffset + 125);
             doc.text("Authorized Signatory", 140, yOffset + 130);
         };
 
-        drawSection(10, "OFFICE COPY"); // Top Copy [cite: 15]
+        // Draw Top Copy
+        drawSection(10, "OFFICE COPY");
+        // Draw Perforation
         doc.setLineDashPattern([2, 2], 0);
-        doc.line(0, 148, 210, 148); // Cut line [cite: 15]
-        drawSection(155, "CUSTOMER COPY"); // Bottom Copy [cite: 15]
+        doc.line(0, 148, 210, 148);
+        // Draw Bottom Copy
+        drawSection(155, "CUSTOMER COPY");
 
         doc.save(`RMA_${rmaData.code}.pdf`);
     } catch (err) {
         alert("Print Error: " + err.message);
     }
-}
-function generatePDF(d) {
+}function generatePDF(d) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
   const W = 210, H = 297;
