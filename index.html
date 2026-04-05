@@ -1261,23 +1261,26 @@ const rmaData = {
             doc.text("PRODUCT DETAILS", 105, yOffset + 32);
 
             doc.setFont("helvetica", "normal");
+          
             // Left Column: Customer
             doc.text(`Name: ${rmaData.customer}`, 15, yOffset + 40);
-            doc.text(`Contact: ${rmaData.contact}`, 15, yOffset + 46);
-            doc.text(`Address: ${rmaData.address}`, 15, yOffset + 52);
-
-            // Right Column: Product
+            doc.text(`Contact: ${rmaData.contact}`, 15, yOffset + 47);
+            doc.text(`Address: ${rmaData.address}`, 15, yOffset + 54);
+            
+            // Right Column: Product & RMA (Shifted down to avoid overlaps)
             doc.text(`RMA Code: ${rmaData.code}`, 105, yOffset + 40);
-            doc.text(`Date: ${rmaData.date}`, 105, yOffset + 46);
-            doc.text(`Location: ${rmaData.location}`, 105, yOffset + 52);
-
-            // --- Issue Box ---
+            doc.text(`Date: ${rmaData.date}`, 105, yOffset + 47);
+            doc.text(`Location: ${rmaData.location}`, 105, yOffset + 54);
+            doc.text(`Product: ${rmaData.product}`, 105, yOffset + 61); // NEW LINE
+            doc.text(`S/N: ${rmaData.serial}`, 105, yOffset + 68);      // NEW LINE
+            
+            // Issue Box (Lowered to yOffset + 75 to make room for the info above)
             doc.setFillColor(245, 245, 245);
-            doc.rect(15, yOffset + 60, 180, 25, 'F');
+            doc.rect(15, yOffset + 75, 180, 25, 'F');
             doc.setFont("helvetica", "bold");
-            doc.text("ISSUE DESCRIPTION:", 20, yOffset + 67);
+            doc.text("ISSUE DESCRIPTION:", 20, yOffset + 82);
             doc.setFont("helvetica", "normal");
-            doc.text(doc.splitTextToSize(rmaData.issue, 170), 20, yOffset + 74);
+            doc.text(doc.splitTextToSize(rmaData.issue, 170), 20, yOffset + 89);
 
             // --- Signature Lines ---
             doc.line(15, yOffset + 110, 70, yOffset + 110);
