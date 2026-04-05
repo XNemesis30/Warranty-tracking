@@ -1504,7 +1504,7 @@ function renderStats(records) {
   const total = records.length;
   const loc1 = records.filter(r => r.Location === 'Location 1').length;
   const loc2 = records.filter(r => r.Location === 'Location 2').length;
-  const pending = records.filter(r => r.Status !== 'Delivered').length;
+  const pending = records.filter(r => r.Status !== 'Replaced').length;
   const sent = records.filter(r => r.Repair_Location === 'We Repair BD').length;
 
   document.getElementById('statsRow').innerHTML = `
@@ -1633,7 +1633,7 @@ function openDetail(record) {
           <option ${record.Status==='In Repair (In-House)'?'selected':''}>In Repair (In-House)</option>
           <option ${record.Status==='Sent to We Repair BD'?'selected':''}>Sent to We Repair BD</option>
           <option ${record.Status==='Fixed'?'selected':''}>Fixed</option>
-          <option ${record.Status==='Delivered'?'selected':''}>Delivered</option>
+          <option ${record.Status==='Replaced'?'selected':''}>Replaced</option>
         </select>
       </div>
       <div class="form-group">
