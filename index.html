@@ -1210,9 +1210,34 @@ function clearForm() {
 
 // ─── PDF GENERATION ───────────────────────────────────────────────────────────
 function printRMA() {
-  const d = window._lastRMAData;
-  if (!d) { showToast('No RMA data to print.', 'error'); return; }
-  generatePDF(d);
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const rmaCode = document.getElementById('generatedCode').innerText;
+        const customer = document.getElementById('customerName').value;
+        const product = document.getElementById('productName').value;
+        const issue = document.getElementById('issue').value;
+
+        // Basic Header
+        doc.setFontSize(22);
+        doc.text("EZ GADGETS - RMA FORM", 20, 20);
+        
+        doc.setFontSize(12);
+        doc.text(`RMA CODE: ${rmaCode}`, 20, 40);
+        doc.text(`Customer: ${customer}`, 20, 50);
+        doc.text(`Product: ${product}`, 20, 60);
+        doc.text(`Issue: ${issue}`, 20, 70);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 80);
+
+        // This force-downloads the file instead of opening a popup
+        doc.save(`RMA_${rmaCode}.pdf`);
+        
+        showToast("PDF Generated successfully!", "success");
+    } catch (e) {
+        console.error(e);
+        alert("PDF Error: " + e.message);
+    }
 }
 
 function generatePDF(d) {
