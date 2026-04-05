@@ -1214,100 +1214,78 @@ function printRMA() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         
-        // Data from form
-// Find this section inside your printRMA() function and update it:
-const rmaData = {
-    code: document.getElementById('generatedCode')?.innerText || "---",
-    date: document.getElementById('rmaDate')?.value || new Date().toLocaleDateString(),
-    
-    // FIXED: Changed 'location' to 'rmaLocation' to match your HTML
-    location: document.getElementById('rmaLocation')?.value || "N/A", 
-    
-    customer: document.getElementById('customerName')?.value || "N/A",
-    contact: document.getElementById('contact')?.value || "N/A",
-    address: document.getElementById('address')?.value || "N/A",
-    
-    // Added safety checks (?.value) to ensure these don't return blank
-    product: document.getElementById('productName')?.value || "N/A", 
-    serial: document.getElementById('serialNumber')?.value || "N/A", 
-    issue: document.getElementById('issue')?.value || "N/A"
-};
+        // --- FIXED DATA MAPPING ---
+        const rmaData = {
+            code: document.getElementById('generatedCode')?.innerText || "---",
+            date: document.getElementById('rmaDate')?.value || new Date().toLocaleDateString(),
+            // FIXED: Grabs the ACTUAL text (e.g. "Dhanmondi") from the dropdown 
+            location: document.getElementById('rmaLocation')?.options[document.getElementById('rmaLocation').selectedIndex]?.text || "N/A",
+            customer: document.getElementById('customerName')?.value || "N/A",
+            contact: document.getElementById('contact')?.value || "N/A",
+            address: document.getElementById('address')?.value || "N/A",
+            product: document.getElementById('productName')?.value || "N/A", 
+            serial: document.getElementById('serialNumber')?.value || "N/A", 
+            issue: document.getElementById('issue')?.value || "N/A"
+        };
 
         const drawSection = (yOffset, label) => {
-            // --- Header & Logo Area ---
-            // If you have your Logo Base64 string, uncomment the line below:
-            doc.addImage(LOGO_B64, 'PNG', 15, yOffset, 30, 20); 
-            
+            // Header Logic
             doc.setFont("Syne", "bold");
             doc.setFontSize(20);
-            doc.setTextColor(245, 200, 66); // Your brand yellow
+            doc.setTextColor(245, 200, 66); 
             doc.text("EZ GADGETS", 50, yOffset + 12);
-            
             doc.setFontSize(10);
             doc.setTextColor(100);
             doc.text("RMA WARRANTY TRACKER", 50, yOffset + 18);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(0);
-            doc.text(label, 160, yOffset + 15, { align: "right" });
+            doc.text(label, 195, yOffset + 15, { align: "right" });
 
-            // --- Info Grid ---
             doc.setDrawColor(200);
-            doc.line(15, yOffset + 25, 195, yOffset + 25); // Top Border
+            doc.line(15, yOffset + 25, 195, yOffset + 25); 
 
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "bold");
-            doc.text("CUSTOMER DETAILS", 15, yOffset + 32);
-            doc.text("PRODUCT DETAILS", 105, yOffset + 32);
-
-            doc.setFont("helvetica", "normal");
-          
             // Left Column: Customer
+            doc.setFontSize(9);
+            doc.setTextColor(0);
+            doc.setFont("helvetica", "bold"); doc.text("CUSTOMER DETAILS", 15, yOffset + 32);
+            doc.setFont("helvetica", "normal");
             doc.text(`Name: ${rmaData.customer}`, 15, yOffset + 40);
             doc.text(`Contact: ${rmaData.contact}`, 15, yOffset + 47);
             doc.text(`Address: ${rmaData.address}`, 15, yOffset + 54);
-            
-            // Right Column: Product & RMA (Shifted down to avoid overlaps)
+
+            // Right Column: Product (BOLDED labels for visibility)
+            doc.setFont("helvetica", "bold"); doc.text("PRODUCT & RMA DETAILS", 105, yOffset + 32);
+            doc.setFont("helvetica", "normal");
             doc.text(`RMA Code: ${rmaData.code}`, 105, yOffset + 40);
             doc.text(`Date: ${rmaData.date}`, 105, yOffset + 47);
             doc.text(`Location: ${rmaData.location}`, 105, yOffset + 54);
-            doc.text(`Product: ${rmaData.product}`, 105, yOffset + 61); // NEW LINE
-            doc.text(`S/N: ${rmaData.serial}`, 105, yOffset + 68);      // NEW LINE
             
-            // Issue Box (Lowered to yOffset + 75 to make room for the info above)
-            doc.setFillColor(245, 245, 245);
-            doc.rect(15, yOffset + 75, 180, 25, 'F');
-            doc.setFont("helvetica", "bold");
-            doc.text("ISSUE DESCRIPTION:", 20, yOffset + 82);
+            // Highlighted Product Info
+            doc.setFont("helvetica", "bold"); 
+            doc.text(`PRODUCT: ${rmaData.product}`, 105, yOffset + 62);
+            doc.text(`S/N: ${rmaData.serial}`, 105, yOffset + 69);
             doc.setFont("helvetica", "normal");
-            doc.text(doc.splitTextToSize(rmaData.issue, 170), 20, yOffset + 89);
 
-            // --- Signature Lines ---
-            doc.line(15, yOffset + 110, 70, yOffset + 110);
-            doc.text("Customer Signature", 15, yOffset + 115);
+            // Issue Box
+            doc.setFillColor(245, 245, 245);
+            doc.rect(15, yOffset + 78, 180, 25, 'F');
+            doc.setFont("helvetica", "bold");
+            doc.text("ISSUE DESCRIPTION:", 20, yOffset + 85);
+            doc.setFont("helvetica", "normal");
+            doc.text(doc.splitTextToSize(rmaData.issue, 170), 20, yOffset + 92);
 
-            doc.line(140, yOffset + 110, 195, yOffset + 110);
-            doc.text("Authorized Signatory", 140, yOffset + 115);
+            // Signature Lines
+            doc.line(15, yOffset + 125, 70, yOffset + 125);
+            doc.text("Customer Signature", 15, yOffset + 130);
+            doc.line(140, yOffset + 125, 195, yOffset + 125);
+            doc.text("Authorized Signatory", 140, yOffset + 130);
         };
 
-        // Draw Office Copy (Top Half)
-        drawSection(10, "OFFICE COPY");
-
-        // Perforation Line
+        drawSection(10, "OFFICE COPY"); // Top Copy [cite: 15]
         doc.setLineDashPattern([2, 2], 0);
-        doc.line(0, 148, 210, 148);
-        doc.setFontSize(8);
-        doc.text("✂- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", 105, 147, { align: "center" });
-        doc.setLineDashPattern([], 0);
-
-        // Draw Customer Copy (Bottom Half)
-        drawSection(155, "CUSTOMER COPY");
+        doc.line(0, 148, 210, 148); // Cut line [cite: 15]
+        drawSection(155, "CUSTOMER COPY"); // Bottom Copy [cite: 15]
 
         doc.save(`RMA_${rmaData.code}.pdf`);
-        showToast("Professional RMA Form Generated!", "success");
-
     } catch (err) {
-        console.error(err);
         alert("Print Error: " + err.message);
     }
 }
