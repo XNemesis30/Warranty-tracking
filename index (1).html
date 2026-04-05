@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EZ GADGETS – RMA Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #161920;
+  --surface2: #1e2230;
+  --border: #2a2f3e;
+  --accent: #f5c842;
+  --accent2: #00d4aa;
+  --accent3: #ff6b6b;
+  --text: #e8eaf0;
+  --text2: #8890a8;
+  --text3: #4a5068;
+  --radius: 12px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(245,200,66,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,200,66,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13,15,20,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-img {
+  height: 36px;
+  width: auto;
+}
+
+.logo-text h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.logo-text p {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* NAV TABS */
+nav {
+  display: flex;
+  gap: 4px;
+  padding: 20px 32px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.tab {
+  padding: 10px 20px;
+  border-radius: 8px 8px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: var(--text3);
+  background: transparent;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.tab:hover { color: var(--text2); }
+
+.tab.active {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* MAIN */
+main {
+  position: relative;
+  z-index: 1;
+  padding: 0 32px 48px;
+}
+
+.panel {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 12px;
+  padding: 32px;
+  animation: fadeIn 0.2s ease;
+}
+
+.panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* FORM */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full { grid-column: 1 / -1; }
+
+label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+}
+
+input, select, textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+
+textarea { resize: vertical; min-height: 80px; }
+
+select option { background: var(--surface2); }
+
+/* SECTION HEADER */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.section-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.section-icon.yellow { background: rgba(245,200,66,0.15); }
+.section-icon.teal { background: rgba(0,212,170,0.12); }
+.section-icon.red { background: rgba(255,107,107,0.12); }
+
+.section-header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.section-header p {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 28px 0;
+}
+
+/* BUTTONS */
+.btn {
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #0d0f14;
+}
+
+.btn-primary:hover { background: #ffd84d; transform: translateY(-1px); }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-teal {
+  background: rgba(0,212,170,0.15);
+  color: var(--accent2);
+  border: 1px solid rgba(0,212,170,0.25);
+}
+
+.btn-teal:hover { background: rgba(0,212,170,0.25); }
+
+.btn-red {
+  background: rgba(255,107,107,0.12);
+  color: var(--accent3);
+  border: 1px solid rgba(255,107,107,0.2);
+}
+
+.btn-red:hover { background: rgba(255,107,107,0.22); }
+
+.btn-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 999;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow);
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-width: 360px;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast.success { background: #1a3a2a; border: 1px solid #2d6b4a; color: #4ade80; }
+.toast.error { background: #3a1a1a; border: 1px solid #6b2d2d; color: #f87171; }
+.toast.info { background: #1a2a3a; border: 1px solid #2d4a6b; color: #60a5fa; }
+
+/* RMA CODE DISPLAY */
+.code-display {
+  background: linear-gradient(135deg, rgba(245,200,66,0.1), rgba(245,200,66,0.05));
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 10px;
+  padding: 20px 24px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.code-display.show { display: flex; }
+
+.code-display .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.code-display .code {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+/* SEARCH */
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.search-bar input { flex: 1; }
+
+/* RECORDS TABLE */
+.records-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-size: 13px;
+}
+
+.records-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  padding: 0 16px 8px;
+}
+
+.records-table td {
+  padding: 14px 16px;
+  background: var(--surface2);
+  vertical-align: middle;
+}
+
+.records-table tr td:first-child { border-radius: 8px 0 0 8px; }
+.records-table tr td:last-child { border-radius: 0 8px 8px 0; }
+
+.records-table tr:hover td { background: #242839; }
+
+/* STATUS BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-received { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.badge-inhouse { background: rgba(245,200,66,0.15); color: var(--accent); }
+.badge-sent { background: rgba(251,146,60,0.15); color: #fb923c; }
+.badge-fixed { background: rgba(74,222,128,0.15); color: #4ade80; }
+.badge-delivered { background: rgba(0,212,170,0.15); color: var(--accent2); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover { color: var(--text); border-color: var(--text2); }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.detail-item .dl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 3px; }
+.detail-item .dv { font-size: 14px; color: var(--text); word-break: break-word; }
+
+/* STATUS UPDATE ROW */
+.status-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.status-row .form-group { flex: 1; min-width: 140px; }
+
+/* STATS */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+.stat-card .sv {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-card .sl {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text3);
+}
+
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* LOCATION PILLS */
+.loc-pill {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.loc-1 { background: rgba(124,58,237,0.18); color: #a78bfa; }
+.loc-2 { background: rgba(236,72,153,0.15); color: #f472b6; }
+
+/* CONFIG PANEL */
+.config-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.config-box h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--accent);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(245,200,66,0.15);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.step p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.step code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 11px; color: var(--accent2); }
+
+/* REPAIR TRACKER */
+.repair-row { display: flex; align-items: center; gap: 8px; }
+
+/* Loading spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(245,200,66,0.3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── RECORD CARDS (used on mobile, hidden on desktop) ── */
+.record-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  display: none; /* shown only on mobile */
+}
+.record-card:active { border-color: var(--accent); }
+.record-card .rc-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.record-card .rc-code {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  background: rgba(245,200,66,0.1);
+  border-radius: 5px;
+  padding: 3px 8px;
+}
+.record-card .rc-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.record-card .rc-sub {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.record-card .rc-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* ── BOTTOM NAV (mobile only) ── */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  background: rgba(18,20,28,0.97);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  padding: 0 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav-inner {
+  display: flex;
+  justify-content: space-around;
+  height: 56px;
+}
+
+.bnav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 6px 0;
+  color: var(--text3);
+  transition: color 0.2s;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bnav-item .bnav-icon { font-size: 20px; line-height: 1; }
+.bnav-item .bnav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; }
+
+.bnav-item.active {
+  color: var(--accent);
+}
+
+.bnav-item.active .bnav-icon {
+  transform: translateY(-2px);
+}
+
+/* ── MOBILE SHEET MODAL ── */
+.modal-overlay.sheet {
+  align-items: flex-end;
+  padding: 0;
+}
+
+.modal-overlay.sheet .modal {
+  border-radius: 20px 20px 0 0;
+  max-height: 90vh;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 20px 32px;
+}
+
+.sheet-handle {
+  display: none;
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+
+/* ── CODE DISPLAY MOBILE ── */
+.code-display.show {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* ── DESKTOP TWEAKS (nav tabs stay on desktop) ── */
+@media (min-width: 641px) {
+  .bottom-nav { display: none !important; }
+  nav { display: flex; }
+  .record-card { display: none !important; }
+  main { padding: 0 32px 48px; }
+  .code-display.show {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
+}
+
+/* ── MOBILE BREAKPOINT ── */
+@media (max-width: 640px) {
+  /* Hide desktop nav tabs, show bottom nav */
+  nav { display: none; }
+  .bottom-nav { display: flex; flex-direction: column; }
+
+  header {
+    padding: 0 16px;
+    height: 56px;
+  }
+  .logo-text h1 { font-size: 14px; }
+  .logo-text p { display: none; }
+  .header-badge { font-size: 11px; padding: 5px 10px; }
+
+  main {
+    padding: 0 12px;
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  .panel {
+    padding: 20px 14px;
+    border-radius: 0 0 12px 12px;
+  }
+
+  /* On mobile: panels have no top border-radius (tabs are gone) */
+  #panel-new, #panel-search, #panel-all, #panel-setup {
+    border-radius: 12px;
+    margin-top: 12px;
+  }
+
+  .form-grid { grid-template-columns: 1fr; gap: 14px; }
+
+  /* Larger touch targets for inputs */
+  input, select, textarea {
+    padding: 13px 14px;
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+
+  label { font-size: 11px; }
+
+  .btn {
+    padding: 13px 20px;
+    font-size: 14px;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Section headers smaller */
+  .section-header h2 { font-size: 16px; }
+  .section-header p { font-size: 11px; }
+
+  /* Stats: 2 per row on mobile */
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card { padding: 12px 14px; }
+  .stat-card .sv { font-size: 22px; }
+
+  /* Records: use cards on mobile, hide table */
+  .records-table { display: none; }
+  .record-card { display: block; }
+
+  /* Search bar stacked */
+  .search-bar { flex-direction: column; }
+  .search-bar .btn { width: 100%; justify-content: center; }
+
+  /* Code display stacked */
+  .code-display.show {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .code-display .code { font-size: 18px; }
+  .code-display .btn { width: 100%; justify-content: center; }
+
+  /* Modal becomes bottom sheet on mobile */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal {
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 16px 32px;
+  }
+  .sheet-handle { display: block; }
+  .modal-header { padding-top: 0; }
+  .detail-grid { grid-template-columns: 1fr; }
+
+  /* Detail item full width on mobile */
+  .detail-item.full { grid-column: auto; }
+
+  /* Config boxes */
+  .config-box { padding: 16px; }
+  .btn-group .btn-primary, .btn-group .btn-teal { width: 100%; justify-content: center; }
+
+  /* Status row stacked */
+  .status-row { flex-direction: column; }
+  .status-row .form-group { min-width: unset; width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <img class="logo-img" src="data:image/png;base64,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" alt="EZ Gadgets Logo">
+    <div class="logo-text">
+      <h1>EZ GADGETS</h1>
+      <p>RMA Warranty Tracker</p>
+    </div>
+  </div>
+  <div class="header-badge">
+    <div class="dot"></div>
+    <span id="connectionStatus">Connecting…</span>
+  </div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="switchTab('new')">➕ New RMA</div>
+  <div class="tab" onclick="switchTab('search')">🔍 Search</div>
+  <div class="tab" onclick="switchTab('all')">📋 All Records</div>
+  <div class="tab" onclick="switchTab('setup')">⚙️ Setup</div>
+</nav>
+
+<main>
+
+<!-- NEW RMA PANEL -->
+<div class="panel active" id="panel-new">
+  <div class="section-header">
+    <div class="section-icon yellow">📦</div>
+    <div>
+      <h2>Register New RMA</h2>
+      <p>Create a warranty claim entry and print the RMA form</p>
+    </div>
+  </div>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="rmaDate">
+    </div>
+    <div class="form-group">
+      <label>Received At</label>
+      <select id="rmaLocation">
+        <option value="Location 1">📍 Location 1</option>
+        <option value="Location 2">📍 Location 2</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Customer Name</label>
+      <input type="text" id="customerName" placeholder="Full name">
+    </div>
+    <div class="form-group">
+      <label>Contact / Phone</label>
+      <input type="text" id="contact" placeholder="+880…">
+    </div>
+    <div class="form-group full">
+      <label>Address</label>
+      <input type="text" id="address" placeholder="Street, area, city">
+    </div>
+
+    <div class="divider" style="grid-column:1/-1;margin:4px 0;"></div>
+
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" id="productName" placeholder="e.g. iPhone 15 Pro">
+    </div>
+    <div class="form-group">
+      <label>Serial Number</label>
+      <input type="text" id="serialNumber" placeholder="IMEI / S/N">
+    </div>
+    <div class="form-group full">
+      <label>Issue Description</label>
+      <textarea id="issue" placeholder="Describe the problem in detail…"></textarea>
+    </div>
+  </div>
+
+  <div class="code-display" id="codeDisplay">
+    <div>
+      <div class="label">RMA Code Generated</div>
+      <div class="code" id="generatedCode">—</div>
+    </div>
+    <button class="btn btn-teal" onclick="printRMA()">🖨️ Print RMA Form</button>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="submitRMA()" id="submitBtn">
+      ✅ Register &amp; Generate Code
+    </button>
+    <button class="btn btn-secondary" onclick="clearForm()">🗑 Clear</button>
+  </div>
+</div>
+
+<!-- SEARCH PANEL -->
+<div class="panel" id="panel-search">
+  <div class="section-header">
+    <div class="section-icon teal">🔍</div>
+    <div>
+      <h2>Search Records</h2>
+      <p>Find by customer name, phone number, or RMA code</p>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchQuery" placeholder="Type name, phone, or RMA code…" onkeyup="if(event.key==='Enter') doSearch()">
+    <button class="btn btn-primary" onclick="doSearch()">Search</button>
+  </div>
+
+  <div id="searchResults"></div>
+</div>
+
+<!-- ALL RECORDS PANEL -->
+<div class="panel" id="panel-all">
+  <div class="section-header">
+    <div class="section-icon yellow">📋</div>
+    <div>
+      <h2>All RMA Records</h2>
+      <p>Complete warranty tracking history</p>
+    </div>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div id="allRecords"><div class="empty-state"><div class="icon">⏳</div><p>Loading records…</p></div></div>
+</div>
+
+<!-- SETUP PANEL -->
+<div class="panel" id="panel-setup">
+  <div class="section-header">
+    <div class="section-icon red">⚙️</div>
+    <div>
+      <h2>App Setup</h2>
+      <p>Connect your Google Sheet as the database</p>
+    </div>
+  </div>
+
+  <div class="config-box">
+    <h3>Step 1 – Create Google Apps Script</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p>Go to <strong>script.google.com</strong> and create a new project</p></div>
+      <div class="step"><div class="step-num">2</div><p>Open a Google Sheet first, then go to <strong>Extensions → Apps Script</strong></p></div>
+      <div class="step"><div class="step-num">3</div><p>Copy the contents of <code>Code.gs</code> (included in the download) into the script editor</p></div>
+      <div class="step"><div class="step-num">4</div><p>Click <strong>Deploy → New deployment</strong>, choose <em>Web app</em>, set <em>Execute as: Me</em>, <em>Access: Anyone</em></p></div>
+      <div class="step"><div class="step-num">5</div><p>Copy the <strong>Web App URL</strong> and paste it below</p></div>
+    </div>
+  </div>
+
+  <div class="config-box">
+    <h3>Step 2 – Paste Your Web App URL</h3>
+    <div class="form-group">
+      <label>Google Apps Script Web App URL</label>
+      <input type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <div class="form-group" style="margin-top:16px;">
+      <label>Location 1 Name</label>
+      <input type="text" id="loc1Name" placeholder="e.g. Dhanmondi Branch">
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label>Location 2 Name</label>
+      <input type="text" id="loc2Name" placeholder="e.g. Gulshan Branch">
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="saveConfig()">💾 Save Configuration</button>
+      <button class="btn btn-teal" onclick="testConnection()">🔗 Test Connection</button>
+    </div>
+  </div>
+
+  <div class="config-box">
+    <h3>GitHub Pages Hosting</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p>Create a GitHub repository (e.g. <code>ez-gadgets-rma</code>)</p></div>
+      <div class="step"><div class="step-num">2</div><p>Upload <code>index.html</code> and <code>Code.gs</code> to the repo</p></div>
+      <div class="step"><div class="step-num">3</div><p>Go to <strong>Settings → Pages</strong>, set source to <em>main branch</em></p></div>
+      <div class="step"><div class="step-num">4</div><p>Your app will be live at <code>https://yourusername.github.io/ez-gadgets-rma</code></p></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="sheet-handle"></div>
+    <div class="modal-header">
+      <h3>📦 RMA Details</h3>
+      <div class="close-btn" onclick="closeModal()">✕</div>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav" aria-label="Main navigation">
+  <div class="bottom-nav-inner">
+    <button class="bnav-item active" onclick="switchTab('new')" id="bnav-new">
+      <span class="bnav-icon">➕</span>
+      <span class="bnav-label">New RMA</span>
+    </button>
+    <button class="bnav-item" onclick="switchTab('search')" id="bnav-search">
+      <span class="bnav-icon">🔍</span>
+      <span class="bnav-label">Search</span>
+    </button>
+    <button class="bnav-item" onclick="switchTab('all')" id="bnav-all">
+      <span class="bnav-icon">📋</span>
+      <span class="bnav-label">Records</span>
+    </button>
+    <button class="bnav-item" onclick="switchTab('setup')" id="bnav-setup">
+      <span class="bnav-icon">⚙️</span>
+      <span class="bnav-label">Setup</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+let SCRIPT_URL = localStorage.getItem('ez_script_url') || '';
+let LOC1 = localStorage.getItem('ez_loc1') || 'Location 1';
+let LOC2 = localStorage.getItem('ez_loc2') || 'Location 2';
+
+const LOGO_B64 = "data:image/png;base64,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";
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(id) {
+  const tabs = ['new','search','all','setup'];
+  // Desktop tabs
+  document.querySelectorAll('nav:not(.bottom-nav) .tab').forEach(t => t.classList.remove('active'));
+  const tabEls = document.querySelectorAll('nav:not(.bottom-nav) .tab');
+  if (tabEls[tabs.indexOf(id)]) tabEls[tabs.indexOf(id)].classList.add('active');
+  // Bottom nav
+  tabs.forEach(t => {
+    const el = document.getElementById('bnav-'+t);
+    if (el) el.classList.toggle('active', t === id);
+  });
+  // Panels
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  // Scroll to top on mobile
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (id === 'all') loadAllRecords();
+  if (id === 'setup') loadConfig();
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.className = `toast ${type} show`;
+  t.innerHTML = (type==='success'?'✅':type==='error'?'❌':'ℹ️') + ' ' + msg;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('rmaDate').value = today;
+  updateLocationNames();
+  checkConnection();
+});
+
+function updateLocationNames() {
+  LOC1 = localStorage.getItem('ez_loc1') || 'Location 1';
+  LOC2 = localStorage.getItem('ez_loc2') || 'Location 2';
+  const sel = document.getElementById('rmaLocation');
+  sel.options[0].text = '📍 ' + LOC1;
+  sel.options[1].text = '📍 ' + LOC2;
+}
+
+async function checkConnection() {
+  const el = document.getElementById('connectionStatus');
+  if (!SCRIPT_URL) { el.textContent = 'Not configured'; return; }
+  try {
+    const r = await apiCall({ action: 'getAll' });
+    el.textContent = r.success ? 'Connected ✓' : 'Error';
+  } catch { el.textContent = 'Offline'; }
+}
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function apiCall(params) {
+  if (!SCRIPT_URL) throw new Error('Script URL not configured. Go to Setup tab.');
+  const url = new URL(SCRIPT_URL);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  return await res.json();
+}
+
+// ─── FORM SUBMIT ──────────────────────────────────────────────────────────────
+async function submitRMA() {
+  const name = document.getElementById('customerName').value.trim();
+  const contact = document.getElementById('contact').value.trim();
+  const address = document.getElementById('address').value.trim();
+  const product = document.getElementById('productName').value.trim();
+  const serial = document.getElementById('serialNumber').value.trim();
+  const issue = document.getElementById('issue').value.trim();
+  const date = document.getElementById('rmaDate').value;
+  const location = document.getElementById('rmaLocation').value;
+
+  if (!name || !contact || !product || !issue) {
+    showToast('Please fill in Name, Contact, Product, and Issue.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+  try {
+    const result = await apiCall({ action:'add', customerName:name, contact, address, productName:product, serialNumber:serial, issue, date, location });
+    if (result.success) {
+      document.getElementById('generatedCode').textContent = result.code;
+      const cd = document.getElementById('codeDisplay');
+      cd.classList.add('show');
+      showToast('RMA registered! Code: ' + result.code, 'success');
+      window._lastRMAData = { code:result.code, date, location, customerName:name, contact, address, productName:product, serialNumber:serial, issue };
+    } else {
+      showToast('Error: ' + result.error, 'error');
+    }
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✅ Register &amp; Generate Code';
+}
+
+function clearForm() {
+  ['customerName','contact','address','productName','serialNumber','issue'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rmaDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('codeDisplay').classList.remove('show');
+  window._lastRMAData = null;
+}
+
+// ─── PDF GENERATION ───────────────────────────────────────────────────────────
+function printRMA() {
+  const d = window._lastRMAData;
+  if (!d) { showToast('No RMA data to print.', 'error'); return; }
+  generatePDF(d);
+}
+
+function generatePDF(d) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W = 210, H = 297;
+  const half = H / 2;
+
+  // Draw both copies
+  drawCopy(doc, d, 0, 'OFFICE COPY');
+  // Dashed divider
+  doc.setLineDashPattern([3,2], 0);
+  doc.setDrawColor(180,180,180);
+  doc.line(10, half, W-10, half);
+  doc.setLineDashPattern([], 0);
+  drawCopy(doc, d, half, 'CUSTOMER COPY');
+
+  doc.save('RMA_' + d.code + '.pdf');
+  showToast('PDF downloaded!', 'success');
+}
+
+function drawCopy(doc, d, yOffset, copyLabel) {
+  const W = 210;
+  const margin = 12;
+  let y = yOffset + 8;
+
+  // Logo
+  doc.addImage(LOGO_B64, 'PNG', margin, y, 22, 14);
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(30,30,30);
+  doc.text('EZ GADGETS RMA Form – Collection and Delivery', W/2, y+8, { align:'center' });
+
+  // Copy label badge
+  doc.setFillColor(245,200,66);
+  doc.roundedRect(W - margin - 32, y + 1, 32, 8, 2, 2, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7);
+  doc.setTextColor(30,30,30);
+  doc.text(copyLabel, W - margin - 16, y + 6, { align:'center' });
+
+  y += 18;
+
+  // RMA Code + Date row
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(80,80,80);
+  doc.text('RMA Code:', W - margin - 70, y);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.setTextColor(180,120,0);
+  doc.text(d.code, W - margin - 52, y);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(80,80,80);
+  doc.text('Date:', W - margin - 30, y);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(30,30,30);
+  const dateStr = d.date ? d.date.split('-').reverse().join('/') : '';
+  doc.text(dateStr, W - margin - 18, y);
+
+  y += 6;
+
+  // Location
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(80,80,80);
+  doc.text('Received At:', margin, y);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(30,30,30);
+  doc.text(d.location || '', margin + 24, y);
+
+  y += 6;
+
+  // Customer info table
+  const rows = [
+    ['Customer Name', d.customerName || ''],
+    ['Contact Info', d.contact || ''],
+    ['Address', d.address || ''],
+  ];
+  const col1W = 36;
+  const col2W = W - margin*2 - col1W;
+
+  rows.forEach(([label, val]) => {
+    doc.setFillColor(248,248,248);
+    doc.rect(margin, y, W - margin*2, 8, 'F');
+    doc.setDrawColor(200,200,200);
+    doc.rect(margin, y, W - margin*2, 8);
+    doc.line(margin + col1W, y, margin + col1W, y+8);
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(60,60,60);
+    doc.text(label, margin + 2, y + 5.5);
+
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(20,20,20);
+    doc.text(String(val).slice(0,60), margin + col1W + 3, y + 5.5);
+
+    y += 8;
+  });
+
+  y += 5;
+
+  // Products table
+  const colWidths = [70, 60, W - margin*2 - 130];
+  const headers2 = ['Product Name', 'Serial Number', 'Issue'];
+
+  // Header row
+  doc.setFillColor(240,240,240);
+  doc.rect(margin, y, W - margin*2, 8, 'F');
+  doc.setDrawColor(200,200,200);
+  doc.rect(margin, y, W - margin*2, 8);
+  let cx = margin;
+  headers2.forEach((h, i) => {
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(40,40,40);
+    doc.text(h, cx + 2, y + 5.5);
+    if (i < 2) {
+      doc.line(cx + colWidths[i], y, cx + colWidths[i], y + 8);
+    }
+    cx += colWidths[i];
+  });
+  y += 8;
+
+  // Data row (tall for issue)
+  const rowH = 16;
+  doc.setFillColor(255,255,255);
+  doc.rect(margin, y, W - margin*2, rowH, 'F');
+  doc.setDrawColor(200,200,200);
+  doc.rect(margin, y, W - margin*2, rowH);
+
+  cx = margin;
+  const vals = [d.productName||'', d.serialNumber||'', d.issue||''];
+  vals.forEach((v, i) => {
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(20,20,20);
+    // Wrap issue text
+    const wrapped = doc.splitTextToSize(v, colWidths[i]-4);
+    doc.text(wrapped, cx + 2, y + 5);
+    if (i < 2) {
+      doc.line(cx + colWidths[i], y, cx + colWidths[i], y + rowH);
+    }
+    cx += colWidths[i];
+  });
+
+  y += rowH + 10;
+
+  // Signatures
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(60,60,60);
+  doc.text('Authorized Sign', margin, y);
+  doc.text('Customer Sign', W - margin - 36, y);
+
+  // Signature lines
+  doc.setDrawColor(180,180,180);
+  doc.line(margin, y + 8, margin + 50, y + 8);
+  doc.line(W - margin - 50, y + 8, W - margin, y + 8);
+}
+
+// ─── SEARCH ───────────────────────────────────────────────────────────────────
+async function doSearch() {
+  const q = document.getElementById('searchQuery').value.trim();
+  if (!q) return;
+  const el = document.getElementById('searchResults');
+  el.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
+  try {
+    const r = await apiCall({ action:'search', query:q });
+    if (r.success) renderTable(el, r.records);
+    else { el.innerHTML = '<div class="empty-state"><p>Error: '+r.error+'</p></div>'; }
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><p>'+e.message+'</p></div>';
+  }
+}
+
+// ─── ALL RECORDS ──────────────────────────────────────────────────────────────
+async function loadAllRecords() {
+  const el = document.getElementById('allRecords');
+  el.innerHTML = '<div class="empty-state"><span class="spinner"></span><p>Loading…</p></div>';
+  try {
+    const r = await apiCall({ action:'getAll' });
+    if (r.success) {
+      renderStats(r.records);
+      renderTable(el, r.records);
+    } else el.innerHTML = '<div class="empty-state"><p>'+r.error+'</p></div>';
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><p>'+e.message+'</p></div>';
+  }
+}
+
+function renderStats(records) {
+  const total = records.length;
+  const loc1 = records.filter(r => r.Location === 'Location 1').length;
+  const loc2 = records.filter(r => r.Location === 'Location 2').length;
+  const pending = records.filter(r => r.Status !== 'Delivered').length;
+  const sent = records.filter(r => r.Repair_Location === 'We Repair BD').length;
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="sv">${total}</div><div class="sl">Total RMAs</div></div>
+    <div class="stat-card"><div class="sv">${loc1}</div><div class="sl">${LOC1}</div></div>
+    <div class="stat-card"><div class="sv">${loc2}</div><div class="sl">${LOC2}</div></div>
+    <div class="stat-card"><div class="sv">${pending}</div><div class="sl">Pending</div></div>
+    <div class="stat-card"><div class="sv">${sent}</div><div class="sl">At We Repair BD</div></div>
+  `;
+}
+
+function renderTable(el, records) {
+  if (!records.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No records found</p></div>';
+    return;
+  }
+
+  // Mobile cards
+  const cards = records.map(r => `
+    <div class="record-card" onclick='openDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
+      <div class="rc-top">
+        <div>
+          <div class="rc-name">${r.Customer_Name||''}</div>
+          <div class="rc-sub">${r.Contact||''} · ${r.Date||''}</div>
+        </div>
+        <span class="rc-code">${r.RMA_Code||''}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:6px">${r.Product_Name||''} ${r.Serial_Number ? '· '+r.Serial_Number : ''}</div>
+      <div class="rc-row">
+        ${locBadge(r.Location)}
+        ${statusBadge(r.Status)}
+        ${repairBadge(r.Repair_Location)}
+      </div>
+    </div>
+  `).join('');
+
+  // Desktop table
+  const table = `
+    <table class="records-table">
+      <thead>
+        <tr>
+          <th>RMA Code</th><th>Date</th><th>Location</th>
+          <th>Customer</th><th>Product</th><th>Status</th><th>Repair At</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${records.map(r => `
+          <tr>
+            <td><span style="font-family:monospace;font-size:11px;color:var(--accent)">${r.RMA_Code||''}</span></td>
+            <td style="color:var(--text2);font-size:12px">${r.Date||''}</td>
+            <td>${locBadge(r.Location)}</td>
+            <td>
+              <div style="font-weight:500">${r.Customer_Name||''}</div>
+              <div style="font-size:11px;color:var(--text3)">${r.Contact||''}</div>
+            </td>
+            <td>
+              <div>${r.Product_Name||''}</div>
+              <div style="font-size:11px;color:var(--text3)">${r.Serial_Number||''}</div>
+            </td>
+            <td>${statusBadge(r.Status)}</td>
+            <td>${repairBadge(r.Repair_Location)}</td>
+            <td>
+              <button class="btn btn-secondary" style="padding:6px 12px;font-size:11px" onclick='openDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Details</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  el.innerHTML = cards + table;
+}
+
+function locBadge(l) {
+  if (!l) return '';
+  return l === 'Location 1'
+    ? `<span class="loc-pill loc-1">📍 ${LOC1}</span>`
+    : `<span class="loc-pill loc-2">📍 ${LOC2}</span>`;
+}
+
+function statusBadge(s) {
+  const map = {
+    'Received': 'badge-received',
+    'In Repair (In-House)': 'badge-inhouse',
+    'Sent to We Repair BD': 'badge-sent',
+    'Fixed': 'badge-fixed',
+    'Delivered': 'badge-delivered',
+  };
+  return `<span class="badge ${map[s]||'badge-received'}">${s||'Received'}</span>`;
+}
+
+function repairBadge(r) {
+  if (!r || r === 'In-House') return `<span class="badge badge-inhouse">🏪 In-House</span>`;
+  return `<span class="badge badge-sent">🔧 We Repair BD</span>`;
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function openDetail(record) {
+  const m = document.getElementById('detailModal');
+  m.classList.add('show');
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-item full"><div class="dl">RMA Code</div><div class="dv" style="font-family:monospace;font-size:18px;color:var(--accent);font-weight:700">${record.RMA_Code||''}</div></div>
+      <div class="detail-item"><div class="dl">Date</div><div class="dv">${record.Date||''}</div></div>
+      <div class="detail-item"><div class="dl">Location</div><div class="dv">${record.Location||''}</div></div>
+      <div class="detail-item"><div class="dl">Customer Name</div><div class="dv">${record.Customer_Name||''}</div></div>
+      <div class="detail-item"><div class="dl">Contact</div><div class="dv">${record.Contact||''}</div></div>
+      <div class="detail-item full"><div class="dl">Address</div><div class="dv">${record.Address||'—'}</div></div>
+      <div class="detail-item"><div class="dl">Product</div><div class="dv">${record.Product_Name||''}</div></div>
+      <div class="detail-item"><div class="dl">Serial Number</div><div class="dv">${record.Serial_Number||'—'}</div></div>
+      <div class="detail-item full"><div class="dl">Issue</div><div class="dv">${record.Issue||''}</div></div>
+      <div class="detail-item"><div class="dl">Current Status</div><div class="dv">${statusBadge(record.Status)}</div></div>
+      <div class="detail-item"><div class="dl">Repair Location</div><div class="dv">${repairBadge(record.Repair_Location)}</div></div>
+      ${record.Notes ? `<div class="detail-item full"><div class="dl">Notes</div><div class="dv">${record.Notes}</div></div>` : ''}
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:12px">Update Status</div>
+    <div class="status-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="updateStatus">
+          <option ${record.Status==='Received'?'selected':''}>Received</option>
+          <option ${record.Status==='In Repair (In-House)'?'selected':''}>In Repair (In-House)</option>
+          <option ${record.Status==='Sent to We Repair BD'?'selected':''}>Sent to We Repair BD</option>
+          <option ${record.Status==='Fixed'?'selected':''}>Fixed</option>
+          <option ${record.Status==='Delivered'?'selected':''}>Delivered</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Repair At</label>
+        <select id="updateRepair">
+          <option ${record.Repair_Location==='In-House'?'selected':''} value="In-House">In-House</option>
+          <option ${record.Repair_Location==='We Repair BD'?'selected':''} value="We Repair BD">We Repair BD</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label>Notes</label>
+      <textarea id="updateNotes" placeholder="Add any notes…">${record.Notes||''}</textarea>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="saveStatus('${record.RMA_Code}')">💾 Save Status</button>
+      <button class="btn btn-teal" onclick='reprintRMA(${JSON.stringify(record)})'>🖨️ Reprint PDF</button>
+    </div>
+  `;
+}
+
+async function saveStatus(code) {
+  const status = document.getElementById('updateStatus').value;
+  const repairLocation = document.getElementById('updateRepair').value;
+  const notes = document.getElementById('updateNotes').value;
+  try {
+    const r = await apiCall({ action:'updateStatus', code, status, repairLocation, notes });
+    if (r.success) {
+      showToast('Status updated!', 'success');
+      closeModal();
+      loadAllRecords();
+    } else showToast('Error: '+r.error, 'error');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function reprintRMA(record) {
+  const d = {
+    code: record.RMA_Code,
+    date: record.Date ? record.Date.split('/').reverse().join('-') : '',
+    location: record.Location,
+    customerName: record.Customer_Name,
+    contact: record.Contact,
+    address: record.Address,
+    productName: record.Product_Name,
+    serialNumber: record.Serial_Number,
+    issue: record.Issue,
+  };
+  generatePDF(d);
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('show');
+}
+
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+function loadConfig() {
+  document.getElementById('scriptUrl').value = localStorage.getItem('ez_script_url') || '';
+  document.getElementById('loc1Name').value = localStorage.getItem('ez_loc1') || '';
+  document.getElementById('loc2Name').value = localStorage.getItem('ez_loc2') || '';
+}
+
+function saveConfig() {
+  const url = document.getElementById('scriptUrl').value.trim();
+  const l1 = document.getElementById('loc1Name').value.trim() || 'Location 1';
+  const l2 = document.getElementById('loc2Name').value.trim() || 'Location 2';
+
+  localStorage.setItem('ez_script_url', url);
+  localStorage.setItem('ez_loc1', l1);
+  localStorage.setItem('ez_loc2', l2);
+
+  SCRIPT_URL = url;
+  LOC1 = l1;
+  LOC2 = l2;
+
+  updateLocationNames();
+  showToast('Configuration saved!', 'success');
+  checkConnection();
+}
+
+async function testConnection() {
+  const url = document.getElementById('scriptUrl').value.trim();
+  if (!url) { showToast('Please enter a URL first.', 'error'); return; }
+  SCRIPT_URL = url;
+  try {
+    const r = await apiCall({ action:'getAll' });
+    if (r.success) showToast('Connection successful! ' + r.records.length + ' records found.', 'success');
+    else showToast('Connected but got error: '+r.error, 'error');
+  } catch(e) { showToast('Connection failed: '+e.message, 'error'); }
+}
+</script>
+</body>
+</html>
